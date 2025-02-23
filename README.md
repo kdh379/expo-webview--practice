@@ -1,50 +1,45 @@
-# Welcome to your Expo app 👋
+# Expo Webview 프로젝트
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+ [Expo](https://expo.dev)와 WebView를 이용한 브릿지 테스트 프로젝트입니다.
 
-## Get started
+## 주요 기능
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+- 웹뷰와 네이티브 간 브릿지 통신
+- 네이티브 다이얼로그 표시
+- ~~블루투스 기능 연동~~
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 개발 환경 설정
 
-## Learn more
+### 환경 변수
 
-To learn more about developing your project with Expo, look at the following resources:
+`.env` 파일을 생성하고 다음 변수들을 설정하세요:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+EXPO_PUBLIC_DEV_URL=실제IP주소
+```
 
-## Join the community
+## 브릿지 API
 
-Join our community of developers creating universal apps.
+브릿지를 통해 다음과 같은 기능들을 사용할 수 있습니다:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- 알림 표시: `bridge.alert()`
+- 확인 대화상자: `bridge.confirm()`
+- 토스트 메시지: `bridge.toast()`
+- 화면 이동: `bridge.navigate()`
+- 사용자 정보: `bridge.getUserInfo()`, `bridge.setUserInfo()`
+- 블루투스: `bridge.bluetooth.*`
+
+## 블루투스 권한
+
+결론: Expo에선 BLE를 구현하기 어렵다.
+
+[react-native-ble-plx](https://github.com/Polidea/react-native-ble-plx) 라이브러리를 사용하여 블루투스 기능을 구현해보고자 하였다.
+
+- 결국 네이티브 코드에 접근이 필요하다.
+- `npx expo prebuild`를 통해 네이티브 프로젝트로 전환해야 했다.
+- 이러면 Expo GO 같은 편의 기능을 이용할 수가 없다.
