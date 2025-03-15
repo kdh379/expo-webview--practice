@@ -1,17 +1,19 @@
-import { useEffect, useState } from 'react';
-import { bridge } from '@/lib/bridge';
-import { useBridge } from '@/hooks/useBridge';
-import type { BluetoothStatus, UserInfo } from '@/types/bridge';
+import { useEffect, useState } from "react";
+
+import { useBridge } from "@/hooks/useBridge";
+import { bridge } from "@/lib/bridge";
+import type { BluetoothStatus, UserInfo } from "@/types/bridge";
 
 export const BridgeExample = () => {
   useBridge();
-  const [bluetoothStatus, setBluetoothStatus] = useState<BluetoothStatus>('off');
+  const [bluetoothStatus, setBluetoothStatus] =
+    useState<BluetoothStatus>("off");
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
 
   useEffect(() => {
     // 블루투스 상태 변경 감지
     bridge.bluetooth.onStatusChange((status, message) => {
-      console.log('블루투스 상태 변경:', status, message);
+      console.log("블루투스 상태 변경:", status, message);
       setBluetoothStatus(status);
     });
 
@@ -24,40 +26,40 @@ export const BridgeExample = () => {
 
   const handleAlertClick = async () => {
     try {
-      await bridge.alert('알림 테스트', '브릿지가 정상적으로 동작합니다.');
+      await bridge.alert("알림 테스트", "브릿지가 정상적으로 동작합니다.");
     } catch (error) {
-      console.error('알림 표시 실패:', error);
+      console.error("알림 표시 실패:", error);
     }
   };
 
   const handleConfirmClick = async () => {
     try {
-      const confirmed = await bridge.confirm('확인', '계속 진행하시겠습니까?');
+      const confirmed = await bridge.confirm("확인", "계속 진행하시겠습니까?");
       if (confirmed) {
-        await bridge.toast('확인되었습니다.');
+        await bridge.toast("확인되었습니다.");
       }
     } catch (error) {
-      console.error('확인 대화상자 표시 실패:', error);
+      console.error("확인 대화상자 표시 실패:", error);
     }
   };
 
   const handleBluetoothEnableClick = async () => {
     try {
       const result = await bridge.bluetooth.requestEnable();
-      console.log('블루투스 활성화 결과:', result);
+      console.log("블루투스 활성화 결과:", result);
     } catch (error) {
-      console.error('블루투스 활성화 요청 실패:', error);
+      console.error("블루투스 활성화 요청 실패:", error);
     }
   };
 
   const handleNavigateClick = () => {
-    bridge.navigate('Profile', { userId: userInfo?.id }).catch(console.error);
+    bridge.navigate("Profile", { userId: userInfo?.id }).catch(console.error);
   };
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">브릿지 테스트</h1>
-      
+
       <div className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold mb-2">블루투스 상태</h2>
@@ -104,4 +106,4 @@ export const BridgeExample = () => {
       </div>
     </div>
   );
-}; 
+};

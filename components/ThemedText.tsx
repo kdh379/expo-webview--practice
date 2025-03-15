@@ -1,22 +1,28 @@
-import { Text, TextProps } from 'react-native';
+import { Text } from "react-native";
+
+import type { TextProps } from "react-native";
 
 type ThemedTextProps = TextProps & {
-  type?: 'title' | 'body' | 'link';
+  type?: "title" | "body" | "link";
 };
 
-export const ThemedText = ({ type = 'body', style, ...props }: ThemedTextProps) => {
+export const ThemedText = ({
+  type = "body",
+  style,
+  ...props
+}: ThemedTextProps) => {
   const textStyle = {
     title: {
       fontSize: 24,
-      fontWeight: 'bold',
+      fontWeight: "bold",
     },
     body: {
       fontSize: 16,
     },
     link: {
       fontSize: 16,
-      color: '#0066CC',
-      textDecorationLine: 'underline',
+      color: "#0066CC",
+      textDecorationLine: "underline",
     },
   };
 

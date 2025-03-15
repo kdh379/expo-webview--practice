@@ -1,15 +1,15 @@
-export type BridgeEventType = 
-  | 'ALERT'
-  | 'CONFIRM'
-  | 'TOAST'
-  | 'NAVIGATE'
-  | 'GET_USER_INFO'
-  | 'SET_USER_INFO'
-  | 'BLUETOOTH_STATUS_CHECK'
-  | 'BLUETOOTH_ENABLE_REQUEST'
-  | 'BLUETOOTH_STATUS'
-  | 'REGISTER_BLUETOOTH_CALLBACK'
-  | 'UNREGISTER_BLUETOOTH_CALLBACK';
+export type BridgeEventType =
+  | "ALERT"
+  | "CONFIRM"
+  | "TOAST"
+  | "NAVIGATE"
+  | "GET_USER_INFO"
+  | "SET_USER_INFO"
+  | "BLUETOOTH_STATUS_CHECK"
+  | "BLUETOOTH_ENABLE_REQUEST"
+  | "BLUETOOTH_STATUS"
+  | "REGISTER_BLUETOOTH_CALLBACK"
+  | "UNREGISTER_BLUETOOTH_CALLBACK";
 
 export type BridgePayload<T = unknown> = {
   id: string;
@@ -50,7 +50,7 @@ export type UserInfo = {
   email: string;
 };
 
-export type BluetoothStatus = 'on' | 'off' | 'unauthorized' | 'unsupported';
+export type BluetoothStatus = "on" | "off" | "unauthorized" | "unsupported";
 
 export type BluetoothStatusPayload = {
   status: BluetoothStatus;
@@ -63,4 +63,4 @@ export type BluetoothCallbackPayload = {
 
 export type BluetoothStatusUpdatePayload = BluetoothStatusPayload & {
   callbackId: string;
-}; 
+};

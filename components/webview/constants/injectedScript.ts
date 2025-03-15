@@ -29,4 +29,4 @@ export const INJECTED_JAVASCRIPT = `
 
     true;
   })();
-`; 
+`;

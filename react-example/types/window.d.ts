@@ -1,4 +1,4 @@
-import type { BluetoothStatus } from './bridge';
+import type { BluetoothStatus } from "./bridge";
 
 declare global {
   interface Window {
@@ -6,4 +6,4 @@ declare global {
       postMessage: (message: string) => void;
     };
   }
-} 
+}

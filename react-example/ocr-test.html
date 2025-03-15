@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OCR 테스트</title>
+    <style>
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+          Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+      button {
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #0d8bf2;
+      }
+      .result-container {
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 20px;
+        border: 1px solid #e0e0e0;
+      }
+      .result-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #555;
+      }
+      .result-item {
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
+      }
+      .result-label {
+        font-weight: bold;
+        color: #666;
+        font-size: 14px;
+      }
+      .result-value {
+        margin-top: 5px;
+        word-break: break-all;
+      }
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+      }
+      .error {
+        color: #f44336;
+        padding: 10px;
+        background-color: #ffebee;
+        border-radius: 5px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>OCR 테스트</h1>
+
+      <div class="button-group">
+        <button id="scanIdCard">주민등록증 스캔</button>
+        <button id="scanDriverLicense">운전면허증 스캔</button>
+      </div>
+
+      <div id="result" class="result-container" style="display: none">
+        <div class="result-title">스캔 결과</div>
+        <div id="resultContent"></div>
+      </div>
+
+      <div id="loading" class="loading" style="display: none">
+        처리 중입니다...
+      </div>
+
+      <div id="error" class="error" style="display: none"></div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // 결과 표시 함수
+        function showResult(result) {
+          const resultContainer = document.getElementById("result");
+          const resultContent = document.getElementById("resultContent");
+          const loading = document.getElementById("loading");
+          const error = document.getElementById("error");
+
+          loading.style.display = "none";
+          error.style.display = "none";
+          resultContainer.style.display = "block";
+
+          resultContent.innerHTML = "";
+
+          // 주민등록증/운전면허증 결과
+          const fields = [
+            { key: "name", label: "이름" },
+            { key: "registrationNumber", label: "주민등록번호/면허번호" },
+            { key: "address", label: "주소" },
+            { key: "issueDate", label: "발급일" },
+            { key: "issuer", label: "발급처" },
+          ];
+
+          fields.forEach((field) => {
+            if (result[field.key]) {
+              const div = document.createElement("div");
+              div.className = "result-item";
+              div.innerHTML = `
+              <div class="result-label">${field.label}</div>
+              <div class="result-value">${result[field.key]}</div>
+            `;
+              resultContent.appendChild(div);
+            }
+          });
+        }
+
+        // 오류 표시 함수
+        function showError(message) {
+          const resultContainer = document.getElementById("result");
+          const loading = document.getElementById("loading");
+          const error = document.getElementById("error");
+
+          loading.style.display = "none";
+          resultContainer.style.display = "none";
+          error.style.display = "block";
+          error.textContent = message;
+        }
+
+        // 로딩 표시 함수
+        function showLoading() {
+          const resultContainer = document.getElementById("result");
+          const loading = document.getElementById("loading");
+          const error = document.getElementById("error");
+
+          loading.style.display = "block";
+          resultContainer.style.display = "none";
+          error.style.display = "none";
+        }
+
+        // 주민등록증 스캔 버튼 클릭 이벤트
+        document
+          .getElementById("scanIdCard")
+          .addEventListener("click", async function () {
+            try {
+              showLoading();
+
+              // 브릿지 API가 있는지 확인
+              if (!window.bridge || !window.bridge.ocr) {
+                throw new Error("OCR 브릿지 API를 사용할 수 없습니다.");
+              }
+
+              // 주민등록증 스캔 호출
+              const result = await window.bridge.ocr.scanIDCard();
+
+              showResult(result);
+            } catch (error) {
+              showError(error.message || "스캔 중 오류가 발생했습니다.");
+              console.error("OCR Error:", error);
+            }
+          });
+
+        // 운전면허증 스캔 버튼 클릭 이벤트
+        document
+          .getElementById("scanDriverLicense")
+          .addEventListener("click", async function () {
+            try {
+              showLoading();
+
+              // 브릿지 API가 있는지 확인
+              if (!window.bridge || !window.bridge.ocr) {
+                throw new Error("OCR 브릿지 API를 사용할 수 없습니다.");
+              }
+
+              // 운전면허증 스캔 호출
+              const result = await window.bridge.ocr.scanDriverLicense();
+
+              showResult(result);
+            } catch (error) {
+              showError(error.message || "스캔 중 오류가 발생했습니다.");
+              console.error("OCR Error:", error);
+            }
+          });
+      });
+    </script>
+  </body>
+</html>
