@@ -115,8 +115,6 @@ export const preprocessImage = async (
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    console.log("base64", base64);
-
     return `data:image/jpeg;base64,${base64}`;
   } catch (error) {
     console.error("이미지 전처리 오류:", error);
@@ -140,15 +138,22 @@ export const extractIDCardInfo = async (
       messages: [
         {
           role: "system",
-          content:
-            "주민등록증 이미지에서 정보를 추출하여 지정된 JSON 형식으로만 응답하세요.",
+          content: `
+당신은 주민등록증 이미지에서 텍스트만 정확히 추출하는 OCR 시스템입니다. 추출한 정보는 JSON 형식으로 응답해야 합니다. 다음 규칙을 엄격히 따르세요:
+
+1. 이미지에서 보이는 텍스트만 정확히 추출하고, 어떤 추론이나 수정도 하지 마세요.
+2. 텍스트가 명확하지 않거나 부분적으로만 보이는 경우, 보이는 그대로 추출하고 절대 추측하여 채우지 마세요.
+3. 한글 자모 인식이 불확실한 경우 uncertainFields에 추가하세요.
+4. 텍스트가 확실하지 않은 부분은 추측하지 말고, uncertainFields에 추가하세요.
+
+정확한 OCR 텍스트 추출에 집중하고, 절대 보이지 않는 텍스트를 추론하거나 '교정'하지 마세요. 결과는 반드시 JSON 형식이어야 합니다.`,
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `이 신분증 이미지에서 다음 형식으로 정보를 추출하세요:
+              text: `이 신분증 이미지에서 다음 JSON 형식으로 정보를 추출하세요. 텍스트가 명확하지 않은 경우 추측하지 말고 정확하게 보이는 내용만 추출하세요:
 {
   "name": "",
   "registrationNumber": "",
@@ -157,7 +162,10 @@ export const extractIDCardInfo = async (
   "issuer": "",
   "isValid": true | false,
   "confidence": 0.95,
+  "uncertainFields": [] // 불확실한 필드 목록(예: ["address", "issueDate"])
 }
+
+불확실하거나 명확히 보이지 않는 텍스트가 있다면 해당 필드를 uncertainFields 배열에 포함시키고, 해당 필드에는 보이는 그대로의 텍스트만 입력하세요. 절대로 추측하여 텍스트를 변경하지 마세요. 응답은 반드시 유효한 JSON 형식이어야 합니다.
   `,
             },
             {
@@ -192,6 +200,7 @@ export const extractIDCardInfo = async (
         ...result,
         imageBase64: base64Data, // 원본 이미지 base64 추가
         confidence: result.confidence || 0.8, // confidence가 없으면 기본값 설정
+        uncertainFields: result.uncertainFields || [], // 불확실한 필드 목록
       };
     } catch (parseError) {
       console.error("JSON 파싱 오류:", parseError);
@@ -206,6 +215,7 @@ export const extractIDCardInfo = async (
         isValid: false,
         confidence: 0,
         imageBase64: base64Data || "",
+        uncertainFields: [],
         error:
           "JSON 파싱 오류: " +
           (parseError instanceof Error
@@ -224,6 +234,7 @@ export const extractIDCardInfo = async (
       isValid: false,
       confidence: 0,
       imageBase64: base64Data || "",
+      uncertainFields: [],
       error: error instanceof Error ? error.message : "알 수 없는 오류",
     };
   }
