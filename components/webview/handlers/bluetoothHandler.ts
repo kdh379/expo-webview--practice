@@ -106,6 +106,11 @@ const createBluetoothHandlers = (
         const devices: BluetoothDevice[] = [];
         isScanning = true;
 
+        if (scanSubscription) {
+          scanSubscription.remove();
+          scanSubscription = null;
+        }
+
         scanSubscription = manager.onStateChange((state) => {
           if (state === "PoweredOn") {
             manager.startDeviceScan(null, null, (error, device) => {
@@ -129,6 +134,14 @@ const createBluetoothHandlers = (
           data: { devices },
         };
       } catch (error) {
+        if (isScanning) {
+          manager.stopDeviceScan();
+          isScanning = false;
+        }
+        if (scanSubscription) {
+          scanSubscription.remove();
+          scanSubscription = null;
+        }
         return {
           id,
           success: false,

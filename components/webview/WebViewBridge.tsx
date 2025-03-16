@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useEffect } from "react";
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -10,7 +10,6 @@ import { WebView } from "react-native-webview";
 
 import { Colors } from "@/constants/Colors";
 
-import { INJECTED_JAVASCRIPT } from "./constants/injectedScript";
 import { useMessageHandler } from "./hooks/useMessageHandler";
 import NativeScreenManager, { useNativeScreens } from "./NativeScreenManager";
 
@@ -40,6 +39,16 @@ export const WebViewBridge = ({ uri }: WebViewBridgeProps) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const colors = isDarkMode ? Colors.dark : Colors.light;
+
+  // 컴포넌트 언마운트 시 정리 작업
+  useEffect(() => {
+    return () => {
+      // WebView 참조가 존재하면 로드 중지
+      if (webViewRef.current) {
+        webViewRef.current.stopLoading();
+      }
+    };
+  }, []);
 
   // 웹뷰로 응답을 보내는 함수
   const sendResponse = useCallback((id: string, data: any) => {
@@ -107,7 +116,6 @@ export const WebViewBridge = ({ uri }: WebViewBridgeProps) => {
         source={{ uri }}
         style={[styles.webview, { backgroundColor: colors.background }]}
         onMessage={handleMessage}
-        injectedJavaScript={INJECTED_JAVASCRIPT}
         startInLoadingState={true}
         javaScriptEnabled={true}
         domStorageEnabled={true}
