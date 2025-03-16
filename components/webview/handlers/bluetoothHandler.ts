@@ -17,7 +17,7 @@ const createBluetoothHandlers = (
   onBluetoothStatus?: (status: BluetoothStatus, message?: string) => void,
 ): Pick<
   MessageHandlers,
-  | "BLUETOOTH_STATUS_CHECK"
+  | "BLUETOOTH_STATUS"
   | "BLUETOOTH_ENABLE_REQUEST"
   | "BLUETOOTH_SCAN_START"
   | "BLUETOOTH_SCAN_STOP"
@@ -26,7 +26,6 @@ const createBluetoothHandlers = (
   | "BLUETOOTH_GET_CONNECTED_DEVICES"
   | "REGISTER_BLUETOOTH_CALLBACK"
   | "UNREGISTER_BLUETOOTH_CALLBACK"
-  | "BLUETOOTH_STATUS"
 > => {
   const callbacks = new Map<
     string,
@@ -59,13 +58,15 @@ const createBluetoothHandlers = (
   };
 
   return {
-    BLUETOOTH_STATUS_CHECK: async (id) => {
+    BLUETOOTH_STATUS: async (id) => {
       const isEnabled = await checkBluetoothPermission();
       const status: BluetoothStatus = isEnabled ? "on" : "off";
       return {
         id,
         success: true,
-        data: { status },
+        data: {
+          status,
+        },
       };
     },
 
@@ -234,14 +235,6 @@ const createBluetoothHandlers = (
 
     UNREGISTER_BLUETOOTH_CALLBACK: (id, { callbackId }) => {
       callbacks.delete(callbackId);
-      return { id, success: true };
-    },
-
-    BLUETOOTH_STATUS: (id, { status, message }) => {
-      callbacks.forEach((callback) => callback(status, message));
-      if (onBluetoothStatus) {
-        onBluetoothStatus(status, message);
-      }
       return { id, success: true };
     },
   };

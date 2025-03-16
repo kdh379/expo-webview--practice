@@ -5,7 +5,7 @@
 type OCRDocumentType = "ID_CARD" | "DRIVER_LICENSE";
 
 // OCR 요청 옵션
-interface OCROptions {
+interface OCRPayload {
   imageUri: string;
   base64?: string;
   documentType?: OCRDocumentType;
@@ -25,11 +25,4 @@ interface IDCardOCRResult {
 }
 
 // OCR 결과 타입
-type OCRResult = IDCardOCRResult | string;
-
-// OCR 응답
-interface OCRResponse {
-  success: boolean;
-  result?: OCRResult;
-  error?: string;
-}
+type OCRResponse = IDCardOCRResult | string;

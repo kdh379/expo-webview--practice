@@ -10,13 +10,18 @@ import type {
 import type { WebViewMessageEvent } from "react-native-webview";
 
 // 메시지 핸들러 타입 정의
-export type HandlerFunction<T extends MessageType> = (
-  id: string,
-  payload: MessageTypes[T],
-) => Promise<BridgeResponse> | BridgeResponse;
+// export type HandlerFunction<T extends BridgeType> = (
+//   id: string,
+//   payload: bridges[T]["payload"],
+// ) => Promise<bridges[T]["response"]> | bridges[T]["response"];
 
 export type MessageHandlers = {
-  [T in MessageType]: HandlerFunction<T>;
+  [T in BridgeType]: (
+    id: string,
+    payload: bridges[T]["payload"],
+  ) =>
+    | Promise<BridgeResponse<bridges[T]["response"]>>
+    | BridgeResponse<bridges[T]["response"]>;
 };
 
 // 메시지 핸들러 훅 Props 타입
@@ -48,7 +53,7 @@ export const useMessageHandler = ({
     (event: WebViewMessageEvent) => {
       try {
         // 메시지 파싱
-        const message = JSON.parse(event.nativeEvent.data) as BridgePayload;
+        const message = JSON.parse(event.nativeEvent.data) as BridgeMessage;
         const { type, id, payload } = message;
 
         // 먼저 스크린 핸들러 확인

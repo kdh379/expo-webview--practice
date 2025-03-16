@@ -5,10 +5,9 @@
 ## 주요 기능
 
 - 웹뷰와 네이티브 간 양방향 브릿지 통신
-- 네이티브 다이얼로그 및 알림 표시
+- 네이티브 Alert 표시
 - 카메라 접근 및 사진 촬영
 - OCR(광학 문자 인식) 기능
-- 사용자 정보 관리
 - ~~블루투스 기능 연동~~ (Expo GO 제한으로 현재 미구현)
 
 ## 시작하기
@@ -33,13 +32,13 @@ npx expo start --android
 
 `.env` 파일을 프로젝트 루트에 생성하고 다음 변수들을 설정하세요:
 
-```
+```sh
 EXPO_PUBLIC_DEV_URL=http://your-local-ip:port
 ```
 
 ## 프로젝트 구조
 
-```
+```graphql
 expo-webview-practice/
 ├── app/                    # Expo Router 기반 화면 컴포넌트
 ├── components/             # 재사용 가능한 UI 컴포넌트
@@ -52,7 +51,6 @@ expo-webview-practice/
 │   │   │   ├── dialogHandler.ts    # 다이얼로그 핸들러
 │   │   │   ├── cameraHandler.ts    # 카메라 핸들러
 │   │   │   ├── ocrHandler.ts       # OCR 핸들러
-│   │   │   ├── userHandler.ts      # 사용자 정보 핸들러
 │   │   │   └── screenHandlers.ts   # 스크린(모달) 핸들러
 │   │   ├── hooks/          # 커스텀 훅
 │   │   │   └── useMessageHandler.ts # 메시지 처리 훅
@@ -102,23 +100,10 @@ expo-webview-practice/
 
 ```javascript
 // 알림 표시
-await bridge.alert("제목", "메시지 내용", [
+const buttonClicked = await bridge.alert("제목", "메시지 내용", [
   { text: "확인", actionId: "confirm" },
   { text: "취소", actionId: "cancel" },
 ]);
-
-// 토스트 메시지
-await bridge.toast("간단한 메시지");
-
-// 확인 대화상자
-const confirmed = await bridge.confirm("확인", "계속 진행하시겠습니까?");
-
-// 화면 이동
-await bridge.navigate("Screen", { id: 1 });
-
-// 사용자 정보
-const userInfo = await bridge.getUserInfo();
-await bridge.setUserInfo({ name: "홍길동", email: "test@example.com" });
 
 // 카메라
 const permission = await bridge.camera.requestPermission();

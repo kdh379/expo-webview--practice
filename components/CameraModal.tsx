@@ -60,7 +60,6 @@ const CameraModal: React.FC<CameraModalProps> = ({
         };
         const photo: CameraCapturedPicture =
           await cameraRef.current.takePictureAsync(options);
-        console.log("photo", photo);
 
         onCapture({
           uri: photo.uri,

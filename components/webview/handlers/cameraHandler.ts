@@ -6,8 +6,6 @@
  */
 
 import * as ImagePicker from "expo-image-picker";
-import * as MediaLibrary from "expo-media-library";
-import { Platform } from "react-native";
 
 import type { MessageHandlers } from "../hooks/useMessageHandler";
 
@@ -18,7 +16,7 @@ import type { MessageHandlers } from "../hooks/useMessageHandler";
  */
 const createCameraHandlers = (): Pick<
   MessageHandlers,
-  "CAMERA_REQUEST_PERMISSION" | "CAMERA_SAVE_TO_LIBRARY"
+  "CAMERA_REQUEST_PERMISSION"
 > => ({
   /**
    * 카메라 권한 요청 핸들러
@@ -26,14 +24,15 @@ const createCameraHandlers = (): Pick<
   CAMERA_REQUEST_PERMISSION: async (id) => {
     try {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
+      const microphonePermission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       return {
         id,
         success: true,
         data: {
-          granted: permission.granted,
-          canAskAgain: permission.canAskAgain,
-          status: permission.status,
+          camera: permission,
+          microphone: microphonePermission,
         },
       };
     } catch (error) {
@@ -46,54 +45,54 @@ const createCameraHandlers = (): Pick<
     }
   },
 
-  /**
-   * 이미지를 갤러리에 저장하는 핸들러
-   */
-  CAMERA_SAVE_TO_LIBRARY: async (id, payload) => {
-    try {
-      if (!payload || !payload.uri) {
-        throw new Error("이미지 URI가 제공되지 않았습니다.");
-      }
+  // /**
+  //  * 이미지를 갤러리에 저장하는 핸들러
+  //  */
+  // CAMERA_SAVE_TO_LIBRARY: async (id, payload) => {
+  //   try {
+  //     if (!payload || !payload.uri) {
+  //       throw new Error("이미지 URI가 제공되지 않았습니다.");
+  //     }
 
-      // 미디어 라이브러리 권한 확인 및 요청
-      const permission = await MediaLibrary.requestPermissionsAsync();
+  //     // 미디어 라이브러리 권한 확인 및 요청
+  //     const permission = await MediaLibrary.requestPermissionsAsync();
 
-      if (!permission.granted) {
-        return {
-          id,
-          success: false,
-          error: "미디어 라이브러리 접근 권한이 없습니다.",
-        };
-      }
+  //     if (!permission.granted) {
+  //       return {
+  //         id,
+  //         success: false,
+  //         error: "미디어 라이브러리 접근 권한이 없습니다.",
+  //       };
+  //     }
 
-      // 이미지 저장
-      const asset = await MediaLibrary.createAssetAsync(payload.uri);
+  //     // 이미지 저장
+  //     const asset = await MediaLibrary.createAssetAsync(payload.uri);
 
-      // 앨범에 추가
-      if (Platform.OS === "ios") {
-        await MediaLibrary.addAssetsToAlbumAsync([asset], "Camera Roll", false);
-      }
+  //     // 앨범에 추가
+  //     if (Platform.OS === "ios") {
+  //       await MediaLibrary.addAssetsToAlbumAsync([asset], "Camera Roll", false);
+  //     }
 
-      return {
-        id,
-        success: true,
-        data: {
-          assetId: asset.id,
-          uri: asset.uri,
-        },
-      };
-    } catch (error) {
-      console.error("이미지 저장 오류:", error);
-      return {
-        id,
-        success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "이미지 저장 중 오류가 발생했습니다.",
-      };
-    }
-  },
+  //     return {
+  //       id,
+  //       success: true,
+  //       data: {
+  //         assetId: asset.id,
+  //         uri: asset.uri,
+  //       },
+  //     };
+  //   } catch (error) {
+  //     console.error("이미지 저장 오류:", error);
+  //     return {
+  //       id,
+  //       success: false,
+  //       error:
+  //         error instanceof Error
+  //           ? error.message
+  //           : "이미지 저장 중 오류가 발생했습니다.",
+  //     };
+  //   }
+  // },
 });
 
 export default createCameraHandlers;

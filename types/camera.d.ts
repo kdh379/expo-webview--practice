@@ -35,11 +35,27 @@ interface CameraRecordOptions {
 
 // 카메라 결과
 interface CameraResult {
-  uri: string;
+  /**
+   * Captured image width.
+   */
   width: number;
+  /**
+   * Captured image height.
+   */
   height: number;
+  /**
+   * On web, the value of `uri` is the same as `base64` because file system URLs are not supported in the browser.
+   */
+  uri: string;
+  /**
+   * A Base64 representation of the image.
+   */
   base64?: string;
-  exif?: any;
+  /**
+   * On Android and iOS this object may include various fields based on the device and operating system.
+   * On web, it is a partial representation of the [`MediaTrackSettings`](https://developer.mozilla.org/en-US/docs/Web/API/MediaTrackSettings) dictionary.
+   */
+  exif?: Partial<MediaTrackSettings> | any;
 }
 
 // 카메라 권한 응답

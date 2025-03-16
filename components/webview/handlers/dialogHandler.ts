@@ -2,13 +2,7 @@ import { Alert } from "react-native";
 
 import type { MessageHandlers } from "../hooks/useMessageHandler";
 
-const createDialogHandlers = (): Pick<MessageHandlers, "ALERT" | "TOAST"> => ({
-  TOAST: (id, { message }) => {
-    // TODO: 실제 Toast 구현체 사용
-    console.log("Toast:", message);
-    return { id, success: true };
-  },
-
+const createDialogHandlers = (): Pick<MessageHandlers, "ALERT"> => ({
   ALERT: async (id, { title, message, buttons }) => {
     const result = await new Promise<{ index: number; actionId?: string }>(
       (resolve) => {
