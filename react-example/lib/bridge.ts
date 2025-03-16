@@ -1,22 +1,9 @@
-import type {
-  BridgeEventType,
-  BridgePayload,
-  BridgeResponse,
-  BluetoothStatus,
-  BluetoothStatusPayload,
-  UserInfo,
-} from "@/types/bridge";
-
 // Constants
 const ERRORS = {
   REACT_NATIVE_NOT_AVAILABLE: "ReactNativeWebView is not available",
   BRIDGE_PARSE_ERROR: "Bridge parse error:",
   BLUETOOTH_CALLBACK_REGISTER_FAILED: "블루투스 콜백 등록 실패:",
 } as const;
-
-// Types
-type BridgeCallback<T = unknown> = (response: BridgeResponse<T>) => void;
-type BridgeCleanup = () => void;
 
 // Utilities
 const generateId = () => Math.random().toString(36).substring(2, 15);
@@ -25,9 +12,9 @@ const isReactNative =
 
 // Callback Management
 class CallbackManager {
-  private callbacks = new Map<string, BridgeCallback<any>>();
+  private callbacks = new Map<string, BridgeCallbackFn<any>>();
 
-  set(id: string, callback: BridgeCallback<any>) {
+  set(id: string, callback: BridgeCallbackFn<any>) {
     this.callbacks.set(id, callback);
   }
 
@@ -50,25 +37,62 @@ class CallbackManager {
 
 const callbackManager = new CallbackManager();
 
+// 브릿지 초기화 상태를 추적하기 위한 변수
+let isBridgeInitialized = false;
+// 메시지 이벤트 핸들러 참조를 저장하는 변수
+let messageHandler: ((event: MessageEvent) => void) | null = null;
+
 // Bridge Initialization
 export const initBridge = () => {
   if (typeof window === "undefined") return;
 
-  window.addEventListener("message", (event) => {
+  // 이미 초기화되었으면 중복 초기화하지 않음
+  if (isBridgeInitialized && messageHandler) {
+    console.log("Bridge already initialized, skipping...");
+    return messageHandler;
+  }
+
+  // 메시지 이벤트 핸들러 생성
+  messageHandler = (event: MessageEvent) => {
     try {
+      console.log("event", event);
       const response = JSON.parse(event.data) as BridgeResponse;
       callbackManager.execute(response.id, response);
     } catch (error) {
       console.error(ERRORS.BRIDGE_PARSE_ERROR, error);
     }
-  });
+  };
+
+  // 이벤트 리스너 등록
+  window.addEventListener("message", messageHandler);
+
+  // 초기화 상태 업데이트
+  isBridgeInitialized = true;
+  console.log("Bridge initialized successfully");
+
+  // 핸들러 참조 반환
+  return messageHandler;
+};
+
+// 브릿지 정리 함수 제공
+export const cleanupBridge = () => {
+  if (typeof window === "undefined" || !messageHandler) return;
+
+  window.removeEventListener("message", messageHandler);
+  messageHandler = null;
+  isBridgeInitialized = false;
+  console.log("Bridge cleanup completed");
 };
 
 // Message Sending
-export const sendBridgeMessage = <T = unknown, R = unknown>(
-  type: BridgeEventType,
-  payload: T,
-): Promise<R> => {
+const sendBridgeMessage = <
+  BridgeType extends keyof bridges,
+  Payload extends bridges[BridgeType]["payload"],
+  Response extends bridges[BridgeType]["response"],
+>(
+  type: BridgeType,
+  payload: Payload,
+): Promise<Response> => {
   if (!isReactNative) {
     console.warn(ERRORS.REACT_NATIVE_NOT_AVAILABLE);
     return Promise.reject(new Error(ERRORS.REACT_NATIVE_NOT_AVAILABLE));
@@ -76,11 +100,11 @@ export const sendBridgeMessage = <T = unknown, R = unknown>(
 
   return new Promise((resolve, reject) => {
     const id = generateId();
-    const message: BridgePayload<T> = { id, type, payload };
+    const message: BridgeMessage = { id, type, payload };
 
     callbackManager.set(id, (response: BridgeResponse) => {
       if (response.success) {
-        resolve(response.data as R);
+        resolve(response.data as Response);
       } else {
         reject(new Error(response.error));
       }
@@ -90,63 +114,68 @@ export const sendBridgeMessage = <T = unknown, R = unknown>(
   });
 };
 
-// Bridge API
-export const bridge = {
-  alert: (title: string, message: string) =>
-    sendBridgeMessage("ALERT", { title, message }),
+// API Type Utilities
+type BridgeApiResponse<T> = Promise<T>;
 
-  confirm: (title: string, message: string) =>
-    sendBridgeMessage<{ title: string; message: string }, boolean>("CONFIRM", {
-      title,
-      message,
-    }),
+type BridgeFromPaths = {
+  <BridgeType extends keyof bridges>(
+    type: BridgeType,
+    payload: bridges[BridgeType]["payload"],
+  ): BridgeApiResponse<bridges[BridgeType]["response"]>;
+};
 
-  toast: (message: string, duration?: number) =>
-    sendBridgeMessage("TOAST", { message, duration }),
+// ------------------------------
+// Bridge API - 일반 브릿지 호출용 함수
+// ------------------------------
+export const bridge: BridgeFromPaths = <BridgeType extends keyof bridges>(
+  type: BridgeType,
+  payload: bridges[BridgeType]["payload"],
+): BridgeApiResponse<bridges[BridgeType]["response"]> => {
+  return sendBridgeMessage(type, payload);
+};
 
-  navigate: (screen: string, params?: Record<string, unknown>) =>
-    sendBridgeMessage("NAVIGATE", { screen, params }),
+// ------------------------------
+// Bridge Listener - 리스너 등록 함수
+// ------------------------------
+type BridgeListenerConfig = {
+  BLUETOOTH_STATUS: {
+    registerType: "REGISTER_BLUETOOTH_CALLBACK";
+    unregisterType: "UNREGISTER_BLUETOOTH_CALLBACK";
+    responseType: bridges["BLUETOOTH_ENABLE_REQUEST"]["response"];
+  };
+  // 추가적인 리스너 타입이 생기면 여기에 추가
+};
 
-  getUserInfo: () =>
-    sendBridgeMessage<void, UserInfo>("GET_USER_INFO", undefined),
+export const bridgeListener = <ListenerType extends keyof BridgeListenerConfig>(
+  type: ListenerType,
+  callback: BridgeCallbackFn<
+    BridgeListenerConfig[ListenerType]["responseType"]
+  >,
+): BridgeCleanupFn => {
+  if (typeof window === "undefined") return () => {};
 
-  setUserInfo: (userInfo: UserInfo) =>
-    sendBridgeMessage("SET_USER_INFO", userInfo),
+  const callbackId = generateId();
+  callbackManager.set(callbackId, callback);
 
-  bluetooth: {
-    checkStatus: () =>
-      sendBridgeMessage<void, BluetoothStatus>(
-        "BLUETOOTH_STATUS_CHECK",
-        undefined,
-      ),
-
-    requestEnable: () =>
-      sendBridgeMessage<void, BluetoothStatusPayload>(
-        "BLUETOOTH_ENABLE_REQUEST",
-        undefined,
-      ),
-
-    onStatusChange: (
-      callback: BridgeCallback<BluetoothStatusPayload>,
-    ): BridgeCleanup => {
-      if (typeof window === "undefined") return () => {};
-
-      const callbackId = generateId();
-      callbackManager.set(callbackId, callback);
-
-      sendBridgeMessage("REGISTER_BLUETOOTH_CALLBACK", { callbackId }).catch(
-        (error) => {
-          console.error(ERRORS.BLUETOOTH_CALLBACK_REGISTER_FAILED, error);
-          callbackManager.delete(callbackId);
-        },
-      );
-
-      return () => {
-        callbackManager.delete(callbackId);
-        sendBridgeMessage("UNREGISTER_BLUETOOTH_CALLBACK", {
-          callbackId,
-        }).catch(console.error);
-      };
+  const config = {
+    BLUETOOTH_STATUS: {
+      registerType: "REGISTER_BLUETOOTH_CALLBACK",
+      unregisterType: "UNREGISTER_BLUETOOTH_CALLBACK",
+      errorMessage: ERRORS.BLUETOOTH_CALLBACK_REGISTER_FAILED,
     },
-  },
-} as const;
+  }[type];
+
+  sendBridgeMessage(config.registerType as any, { callbackId }).catch(
+    (error) => {
+      console.error(config.errorMessage, error);
+      callbackManager.delete(callbackId);
+    },
+  );
+
+  return () => {
+    callbackManager.delete(callbackId);
+    sendBridgeMessage(config.unregisterType as any, {
+      callbackId,
+    }).catch(console.error);
+  };
+};

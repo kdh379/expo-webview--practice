@@ -33,4 +33,4 @@ interface IDCardOCRResult {
 }
 
 // OCR 결과 타입
-type OCRResponse = IDCardOCRResult | string;
+type OCRResponse = IDCardOCRResult;
