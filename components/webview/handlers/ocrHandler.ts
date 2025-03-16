@@ -12,6 +12,7 @@ interface OCRModalController {
   showOCRModal: (
     documentType: OCRDocumentType,
     callback: (result: IDCardOCRResult) => void,
+    options?: OCRPayload,
   ) => void;
   hideOCRModal: () => void;
 }
@@ -22,7 +23,7 @@ interface OCRModalController {
 const createOCRHandlers = (
   ocrController?: OCRModalController,
 ): Pick<MessageHandlers, "OCR_SCAN_ID_CARD"> => ({
-  OCR_SCAN_ID_CARD: async (id, _options) => {
+  OCR_SCAN_ID_CARD: async (id, options) => {
     try {
       if (!ocrController) {
         return {
@@ -32,16 +33,29 @@ const createOCRHandlers = (
         };
       }
 
+      // 옵션 파싱
+      const includeImageBase64 = options?.includeImageBase64 !== false; // 기본값: true
+
       // Promise를 생성하여 OCR 결과를 기다림
       const result = await new Promise<IDCardOCRResult>((resolve, reject) => {
         try {
-          ocrController.showOCRModal("ID_CARD", (ocrResult) => {
-            if (typeof ocrResult !== "string") {
-              resolve(ocrResult);
-            } else {
-              reject(new Error("OCR 결과가 유효하지 않습니다."));
-            }
-          });
+          ocrController.showOCRModal(
+            "ID_CARD",
+            (ocrResult) => {
+              if (typeof ocrResult !== "string") {
+                // 이미지 base64 포함 여부에 따라 처리
+                if (!includeImageBase64 && ocrResult.imageBase64) {
+                  const { imageBase64, ...resultWithoutImage } = ocrResult;
+                  resolve(resultWithoutImage);
+                } else {
+                  resolve(ocrResult);
+                }
+              } else {
+                reject(new Error("OCR 결과가 유효하지 않습니다."));
+              }
+            },
+            options,
+          );
         } catch (error) {
           reject(error);
         }
@@ -57,7 +71,10 @@ const createOCRHandlers = (
       return {
         id,
         success: false,
-        error: "주민등록증 OCR 처리 중 오류가 발생했습니다.",
+        error:
+          error instanceof Error
+            ? error.message
+            : "주민등록증 OCR 처리 중 오류가 발생했습니다.",
       };
     }
   },

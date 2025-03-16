@@ -18,6 +18,23 @@ type WebViewBridgeProps = {
   uri: string;
 };
 
+// JSON 데이터를 안전하게 문자열화하는 함수
+const safeStringify = (data: any): string => {
+  // rawText 필드가 있고 개행 문자가 포함된 경우 처리
+  if (
+    data &&
+    typeof data === "object" &&
+    data.data &&
+    typeof data.data === "object" &&
+    data.data.rawText
+  ) {
+    // 개행 문자를 이스케이프된 형태로 변환
+    data.data.rawText = data.data.rawText.replace(/\n/g, "\\n");
+  }
+
+  return JSON.stringify(data);
+};
+
 export const WebViewBridge = ({ uri }: WebViewBridgeProps) => {
   const webViewRef = useRef<WebView>(null);
   const colorScheme = useColorScheme();
@@ -32,8 +49,11 @@ export const WebViewBridge = ({ uri }: WebViewBridgeProps) => {
       data,
     };
 
+    // 안전한 JSON 문자열화 함수 사용
+    const safeJsonString = safeStringify(response);
+
     webViewRef.current?.injectJavaScript(`
-      window.postMessage('${JSON.stringify(response)}', '*');
+      window.postMessage('${safeJsonString}', '*');
     `);
   }, []);
 
@@ -45,8 +65,11 @@ export const WebViewBridge = ({ uri }: WebViewBridgeProps) => {
       error,
     };
 
+    // 안전한 JSON 문자열화 함수 사용
+    const safeJsonString = safeStringify(response);
+
     webViewRef.current?.injectJavaScript(`
-      window.postMessage('${JSON.stringify(response)}', '*');
+      window.postMessage('${safeJsonString}', '*');
     `);
   }, []);
 

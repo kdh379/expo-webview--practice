@@ -41,7 +41,7 @@ interface CameraState {
 interface OCRState {
   visible: boolean;
   callbackId: string;
-  documentType: "ID_CARD" | "DRIVER_LICENSE";
+  options?: OCRPayload;
 }
 
 // 네이티브 스크린 관리자 컴포넌트
@@ -59,13 +59,17 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
   const [ocrState, setOcrState] = useState<OCRState>({
     visible: false,
     callbackId: "",
-    documentType: "ID_CARD",
+    options: undefined,
   });
 
   // 카메라 모달 닫기 핸들러
   const handleCloseCamera = (result?: CameraResult) => {
     if (cameraState.callbackId) {
       if (result) {
+        setCameraState({
+          visible: false,
+          callbackId: "",
+        });
         sendResponse(cameraState.callbackId, result);
       } else {
         sendResponse(cameraState.callbackId, {
@@ -84,7 +88,14 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
   const handleCloseOCR = (result?: IDCardOCRResult) => {
     if (ocrState.callbackId) {
       if (result) {
-        sendResponse(ocrState.callbackId, result);
+        const { isValid, ...rest } = result;
+        if (isValid) {
+          sendResponse(ocrState.callbackId, rest);
+        } else {
+          sendResponse(ocrState.callbackId, {
+            error: "OCR 결과가 유효하지 않습니다.",
+          });
+        }
       } else {
         sendResponse(ocrState.callbackId, { error: "OCR이 취소되었습니다." });
       }
@@ -105,11 +116,14 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
         callbackId: id,
       });
     },
-    showOCR: (id: string, documentType: "ID_CARD" | "DRIVER_LICENSE") => {
+    showOCR: (id: string, options?: OCRPayload) => {
       setOcrState({
         visible: true,
         callbackId: id,
-        documentType,
+        options: {
+          documentType: "ID_CARD",
+          ...options,
+        },
       });
     },
   };
@@ -130,7 +144,7 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
         visible={ocrState.visible}
         onClose={() => handleCloseOCR()}
         onComplete={handleCloseOCR}
-        documentType={ocrState.documentType}
+        options={ocrState.options}
       />
     </NativeScreenContext.Provider>
   );

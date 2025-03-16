@@ -7,7 +7,6 @@
 
 import createCameraHandlers from "./cameraHandler";
 import createDialogHandlers from "./dialogHandler";
-import createOCRHandlers from "./ocrHandler";
 import createUserHandlers from "./userHandler";
 
 import type { MessageHandlers } from "../hooks/useMessageHandler";
@@ -23,7 +22,7 @@ export const createHandlers = (): Partial<MessageHandlers> => {
     ...createDialogHandlers(),
     ...createUserHandlers(),
     ...createCameraHandlers(),
-    ...createOCRHandlers(),
+    // ...createOCRHandlers(),
     // 필요한 경우 추가 핸들러 등록
   };
 };

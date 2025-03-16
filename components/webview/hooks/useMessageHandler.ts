@@ -3,17 +3,8 @@ import { useCallback } from "react";
 import { createHandlers } from "../handlers";
 import { createScreenHandlers } from "../handlers/screenHandlers";
 
-import type {
-  ScreenController,
-  ScreenMessageType,
-} from "../handlers/screenHandlers";
+import type { ScreenController } from "../handlers/screenHandlers";
 import type { WebViewMessageEvent } from "react-native-webview";
-
-// 메시지 핸들러 타입 정의
-// export type HandlerFunction<T extends BridgeType> = (
-//   id: string,
-//   payload: bridges[T]["payload"],
-// ) => Promise<bridges[T]["response"]> | bridges[T]["response"];
 
 export type MessageHandlers = {
   [T in BridgeType]: (
@@ -22,6 +13,10 @@ export type MessageHandlers = {
   ) =>
     | Promise<BridgeResponse<bridges[T]["response"]>>
     | BridgeResponse<bridges[T]["response"]>;
+};
+
+export type ScreenHandlers = {
+  [T in BridgeType]: (id: string, payload: bridges[T]["payload"]) => boolean; // 스크린 핸들러는 응답을 NativeScreenManager에서 처리함
 };
 
 // 메시지 핸들러 훅 Props 타입
@@ -57,10 +52,10 @@ export const useMessageHandler = ({
         const { type, id, payload } = message;
 
         // 먼저 스크린 핸들러 확인
-        const screenHandler = screenHandlers[type as ScreenMessageType];
+        const screenHandler = screenHandlers[type];
         if (screenHandler) {
           // 스크린 핸들러가 있으면 실행하고 종료
-          screenHandler(id, payload);
+          screenHandler(id, payload as unknown as never);
           return;
         }
 
