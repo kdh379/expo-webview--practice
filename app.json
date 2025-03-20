@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "ExpoWebview",
-    "slug": "ExpoWebview",
+    "name": "carplat-test",
+    "slug": "carplat-test",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "carplat-test",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.expowebview",
+      "bundleIdentifier": "com.carplat-test",
       "infoPlist": {
         "NSBluetoothAlwaysUsageDescription": "블루투스 기능을 사용하기 위해 권한이 필요합니다."
       }
@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.expowebview",
+      "package": "com.carplat_test",
       "permissions": [
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_ADMIN",

@@ -123,6 +123,24 @@ type bridges = {
     payload: OCRPayload;
     response: OCRResponse;
   };
+
+  // VisionCamera
+  VISION_CAMERA_SHOW: {
+    payload: undefined;
+    response: CameraResult;
+  };
+
+  // VisionOCR
+  VISION_OCR_SHOW: {
+    payload: undefined;
+    response: IDCardOCRResult;
+  };
+
+  // DocumentScanner
+  DOCUMENT_SCANNER_SHOW: {
+    payload: undefined;
+    response: DocumentScanResult;
+  };
 };
 
 type BridgeType = keyof bridges;

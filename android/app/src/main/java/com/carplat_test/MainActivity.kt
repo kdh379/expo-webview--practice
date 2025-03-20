@@ -1,4 +1,4 @@
-package com.expowebview
+package com.carplat_test
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

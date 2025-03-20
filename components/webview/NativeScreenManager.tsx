@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useState } from "react";
 
+import type { DocumentScanResult } from "@/components/DocumentScannerModal";
+import DocumentScannerModal from "@/components/DocumentScannerModal";
+import VisionCameraModal from "@/components/VisionCameraModal";
+import VisionOCRModal from "@/components/VisionOCRModal";
+
 import CameraModal from "../CameraModal";
 import OCRModal from "../OCRModal";
 
@@ -38,10 +43,25 @@ interface CameraState {
   callbackId: string;
 }
 
+interface VisionCameraState {
+  visible: boolean;
+  callbackId: string;
+}
+
 interface OCRState {
   visible: boolean;
   callbackId: string;
   options?: OCRPayload;
+}
+
+interface VisionOCRState {
+  visible: boolean;
+  callbackId: string;
+}
+
+interface DocumentScannerState {
+  visible: boolean;
+  callbackId: string;
 }
 
 // 네이티브 스크린 관리자 컴포넌트
@@ -61,6 +81,77 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
     callbackId: "",
     options: undefined,
   });
+
+  // VisionCamera 모달 상태 관리
+  const [visionCameraState, setVisionCameraState] = useState<VisionCameraState>(
+    {
+      visible: false,
+      callbackId: "",
+    },
+  );
+
+  // VisionOCR 모달 상태 관리
+  const [visionOCRState, setVisionOCRState] = useState<VisionOCRState>({
+    visible: false,
+    callbackId: "",
+  });
+
+  // DocumentScanner 모달 상태 관리
+  const [documentScannerState, setDocumentScannerState] =
+    useState<DocumentScannerState>({
+      visible: false,
+      callbackId: "",
+    });
+
+  // VisionCamera 모달 닫기 핸들러
+  const handleCloseVisionCamera = (result?: CameraResult) => {
+    if (visionCameraState.callbackId) {
+      if (result) {
+        setVisionCameraState({
+          visible: false,
+          callbackId: "",
+        });
+        sendResponse(visionCameraState.callbackId, result);
+      } else {
+        sendResponse(visionCameraState.callbackId, {
+          error: "VisionCamera가 취소되었습니다.",
+        });
+      }
+    }
+
+    setVisionCameraState({
+      visible: false,
+      callbackId: "",
+    });
+  };
+
+  // DocumentScanner 모달 닫기 핸들러
+  const handleCloseDocumentScanner = (result?: DocumentScanResult) => {
+    if (documentScannerState.callbackId) {
+      if (result) {
+        sendResponse(documentScannerState.callbackId, result);
+      }
+    }
+
+    setDocumentScannerState({
+      visible: false,
+      callbackId: "",
+    });
+  };
+
+  // VisionOCR 모달 닫기 핸들러
+  const handleCloseVisionOCR = (result?: IDCardOCRResult) => {
+    if (visionOCRState.callbackId) {
+      if (result) {
+        sendResponse(visionOCRState.callbackId, result);
+      }
+    }
+
+    setVisionOCRState({
+      visible: false,
+      callbackId: "",
+    });
+  };
 
   // 카메라 모달 닫기 핸들러
   const handleCloseCamera = (result?: CameraResult) => {
@@ -126,6 +217,24 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
         },
       });
     },
+    showVisionCamera: (id: string) => {
+      setVisionCameraState({
+        visible: true,
+        callbackId: id,
+      });
+    },
+    showVisionOCR: (id: string) => {
+      setVisionOCRState({
+        visible: true,
+        callbackId: id,
+      });
+    },
+    showDocumentScanner: (id: string) => {
+      setDocumentScannerState({
+        visible: true,
+        callbackId: id,
+      });
+    },
   };
 
   return (
@@ -145,6 +254,25 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
         onClose={() => handleCloseOCR()}
         onComplete={handleCloseOCR}
         options={ocrState.options}
+      />
+
+      {/* VisionCamera 모달 */}
+      <VisionCameraModal
+        visible={visionCameraState.visible}
+        onClose={() => handleCloseVisionCamera()}
+        onCapture={handleCloseVisionCamera}
+      />
+
+      <VisionOCRModal
+        visible={visionOCRState.visible}
+        onClose={() => handleCloseVisionOCR()}
+        onComplete={handleCloseVisionOCR}
+      />
+
+      <DocumentScannerModal
+        visible={documentScannerState.visible}
+        onClose={() => handleCloseDocumentScanner()}
+        onCapture={handleCloseDocumentScanner}
       />
     </NativeScreenContext.Provider>
   );

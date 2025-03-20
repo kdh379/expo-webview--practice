@@ -10,6 +10,9 @@ import type { ScreenHandlers } from "@/components/webview/hooks/useMessageHandle
 export interface ScreenController {
   showCamera: (id: string) => void;
   showOCR: (id: string, options?: OCRPayload) => void;
+  showVisionCamera: (id: string) => void;
+  showVisionOCR: (id: string) => void;
+  showDocumentScanner: (id: string) => void;
 }
 
 /**
@@ -36,10 +39,22 @@ export const createScreenHandlers = (
       return true;
     },
 
-    // 운전면허증 OCR 모달 표시
-    // OCR_SCAN_DRIVER_LICENSE: (id: string) => {
-    //   controller.showOCR(id, "DRIVER_LICENSE");
-    //   return true;
-    // },
+    // VisionCamera 모달 표시
+    VISION_CAMERA_SHOW: (id: string) => {
+      controller.showVisionCamera(id);
+      return true;
+    },
+
+    // VisionOCR 모달 표시
+    VISION_OCR_SHOW: (id: string) => {
+      controller.showVisionOCR(id);
+      return true;
+    },
+
+    // DocumentScanner 모달 표시
+    DOCUMENT_SCANNER_SHOW: (id: string) => {
+      controller.showDocumentScanner(id);
+      return true;
+    },
   };
 };
