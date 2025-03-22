@@ -137,7 +137,10 @@ export const bridge: BridgeFromPaths = <BridgeType extends keyof bridges>(
 // ------------------------------
 // Bridge Listener - 리스너 등록 함수
 // ------------------------------
+/*
+GPS, BLUETOOTH, 등등 기능 추가 시 주석 해제
 type BridgeListenerConfig = {
+  // @example
   BLUETOOTH_STATUS: {
     registerType: "REGISTER_BLUETOOTH_CALLBACK";
     unregisterType: "UNREGISTER_BLUETOOTH_CALLBACK";
@@ -179,3 +182,4 @@ export const bridgeListener = <ListenerType extends keyof BridgeListenerConfig>(
     }).catch(console.error);
   };
 };
+*/

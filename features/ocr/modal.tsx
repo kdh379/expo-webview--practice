@@ -11,15 +11,12 @@ import {
 import { useSkiaFrameProcessor } from "react-native-vision-camera";
 import { useResizePlugin } from "vision-camera-resize-plugin";
 
-import VisionCameraModal from "@/components/VisionCameraModal";
+import { CameraModal } from "@/features/camera";
+import type { ScreenComponentProps } from "@/screens/types";
 
 import type { Rect } from "react-native-fast-opencv";
 
-interface OpenCVOCRModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onComplete: () => void;
-}
+interface OCRModalProps extends ScreenComponentProps<OCRPayload, OCRResponse> {}
 
 // Skia 페인트 객체 생성 - 탐지된 객체를 표시하는 데 사용
 const paint = Skia.Paint();
@@ -27,7 +24,7 @@ paint.setStyle(PaintStyle.Fill);
 // 탐지된 영역을 표시할 색상 설정 (라임색)
 paint.setColor(Skia.Color("lime"));
 
-function OpenCVOCRModal({ visible, onClose, onComplete }: OpenCVOCRModalProps) {
+function OCRModal({ visible, onClose, onComplete }: OCRModalProps) {
   const { resize } = useResizePlugin();
   const frameProcessor = useSkiaFrameProcessor((frame) => {
     "worklet";
@@ -124,14 +121,36 @@ function OpenCVOCRModal({ visible, onClose, onComplete }: OpenCVOCRModalProps) {
     OpenCV.clearBuffers();
   }, []);
 
+  // TODO: Document 인식 후 자동화
+  const handleCapture = (camera: CameraResult) => {
+    onComplete({
+      photo: camera,
+      result: {
+        name: "홍길동",
+        registrationNumber: "1234567890",
+        address: "서울특별시 강남구 역삼동",
+        issueDate: "2021-01-01",
+        issuer: "서울시청",
+        isValid: true,
+        confidence: 0.95,
+        imageBase64: camera.base64,
+        uncertainFields: ["address", "issueDate"],
+      },
+    });
+  };
+
   return (
-    <VisionCameraModal
+    <CameraModal
       visible={visible}
       onClose={onClose}
-      onCapture={onComplete}
+      onComplete={handleCapture}
       frameProcessor={frameProcessor}
+      payload={{
+        flash: "off",
+        physicalDevices: ["wide-angle-camera"],
+      }}
     />
   );
 }
 
-export default OpenCVOCRModal;
+export default OCRModal;

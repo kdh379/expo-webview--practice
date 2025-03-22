@@ -6,16 +6,12 @@ type OCRDocumentType = "ID_CARD" | "DRIVER_LICENSE";
 
 interface OCRPayload {
   documentType?: OCRDocumentType;
-  includeImageBase64?: boolean;
   quality?: number;
 }
 
-// OCR API 요청 타입 ( OpenAI 에 요청할 데이터 )
-interface OCRRequest {
-  imageUri: string;
-  base64?: string;
-  documentType?: OCRDocumentType;
-  language?: string;
+interface OCRResponse {
+  photo?: CameraResult;
+  result?: IDCardOCRResult;
 }
 
 // 주민등록증 OCR 결과
@@ -31,6 +27,3 @@ interface IDCardOCRResult {
   uncertainFields?: string[]; // 불확실한 필드 목록 (예: ["address", "issueDate"])
   error?: string; // 오류 메시지
 }
-
-// OCR 결과 타입
-type OCRResponse = IDCardOCRResult;

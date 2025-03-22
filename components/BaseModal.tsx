@@ -1,13 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
-import {
-  Modal,
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Text,
-  SafeAreaView,
-} from "react-native";
+import { Modal, View, TouchableOpacity, StyleSheet, Text } from "react-native";
 
 interface BaseModalProps {
   visible: boolean;
@@ -26,36 +19,29 @@ const BaseModal: React.FC<BaseModalProps> = ({
 }) => {
   return (
     <Modal visible={visible} animationType="slide" transparent={false}>
-      <SafeAreaView style={styles.container}>
-        {!hideHeader && (
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <MaterialIcons name="close" size={24} color="#000" />
-            </TouchableOpacity>
-            <Text style={styles.title}>{title}</Text>
-            <View style={styles.placeholder} />
-          </View>
-        )}
+      {!hideHeader && (
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <MaterialIcons name="close" size={24} color="#fff" />
+          </TouchableOpacity>
+          <Text style={styles.title}>{title}</Text>
+          <View style={styles.placeholder} />
+        </View>
+      )}
 
-        <View style={styles.content}>{children}</View>
-      </SafeAreaView>
+      <View style={styles.content}>{children}</View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000000",
-  },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-    backgroundColor: "#fff",
+    position: "absolute",
+    top: 50,
+    left: 0,
+    right: 0,
+    padding: 10,
+    zIndex: 1000,
   },
   closeButton: {
     padding: 5,

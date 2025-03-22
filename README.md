@@ -1,6 +1,6 @@
 # Expo WebView 브릿지 프로젝트
 
-[Expo](https://expo.dev)와 WebView를 이용한 네이티브-웹 브릿지 통신 구현 프로젝트입니다. 웹 애플리케이션에서 네이티브 기능(카메라, OCR, 다이얼로그 등)을 사용할 수 있도록 브릿지 인터페이스를 제공합니다.
+[Expo](https://expo.dev) Bare Workflow(eject) 프로젝트에서 WebView를 이용한 네이티브-웹 브릿지 통신 구현 프로젝트입니다.
 
 ## 주요 기능
 
@@ -8,7 +8,6 @@
 - 네이티브 Alert 표시
 - 카메라 접근 및 사진 촬영
 - OCR(광학 문자 인식) 기능
-- ~~블루투스 기능 연동~~ (Expo GO 제한으로 현재 미구현)
 
 ## 시작하기
 
@@ -19,13 +18,12 @@
 npm install
 
 # 개발 서버 실행
-npx expo start
+npm run start
 
-# iOS 시뮬레이터에서 실행
-npx expo start --ios
-
-# Android 에뮬레이터에서 실행
-npx expo start --android
+# 네테이브 관련 라이브러리 추가 시, local build + 실행이 1회 필요함
+# xcode 또는 android studio 에서 빌드하거나, 아래 명령어로 실행
+npx expo run:ios --device       # Xcode에 내 기기가 등록되어 있어야 함
+npx expo run:android
 ```
 
 ### 환경 변수 설정
@@ -33,35 +31,29 @@ npx expo start --android
 `.env` 파일을 프로젝트 루트에 생성하고 다음 변수들을 설정하세요:
 
 ```sh
+# 웹뷰 프로젝트의 Node.js 주소 (e.g. http://192.168.1.100:3000)
 EXPO_PUBLIC_DEV_URL=http://your-local-ip:port
 ```
 
 ## 프로젝트 구조
 
-```graphql
+```sh
 expo-webview-practice/
 ├── app/                    # Expo Router 기반 화면 컴포넌트
 ├── components/             # 재사용 가능한 UI 컴포넌트
 │   ├── webview/            # WebView 관련 컴포넌트
-│   │   ├── WebViewBridge.tsx       # 웹뷰 브릿지 메인 컴포넌트
-│   │   ├── NativeScreenManager.tsx # 네이티브 스크린(모달) 관리
-│   │   ├── constants/      # 상수 정의
-│   │   ├── handlers/       # 브릿지 핸들러 구현
-│   │   │   ├── index.ts            # 핸들러 통합 모듈
-│   │   │   ├── dialogHandler.ts    # 다이얼로그 핸들러
-│   │   │   ├── cameraHandler.ts    # 카메라 핸들러
-│   │   │   ├── ocrHandler.ts       # OCR 핸들러
-│   │   │   └── screenHandlers.ts   # 스크린(모달) 핸들러
-│   │   ├── hooks/          # 커스텀 훅
-│   │   │   └── useMessageHandler.ts # 메시지 처리 훅
-│   │   └── lib/            # 유틸리티 함수
-├── constants/              # 앱 전체 상수
-├── hooks/                  # 앱 전체 커스텀 훅
-├── types/                  # 타입 정의
-│   ├── bridge.d.ts         # 브릿지 메시지 타입
-│   ├── camera.d.ts         # 카메라 관련 타입
-│   ├── ocr.d.ts            # OCR 관련 타입
-│   └── user.d.ts           # 사용자 정보 타입
+│   │   ├── useMessageHandler.ts # 메시지 처리 훅
+│   │   └── utils.ts        # 웹뷰 유틸리티 함수
+├── features/               # 기능별 모듈
+│   └── FEATURE_NAME/       # 기능 관련 기능
+│   │   ├── handlers.ts     # 핸들러 로직
+│   │   ├── modal.tsx       # 모달 컴포넌트
+│   │   └── index.ts        # 진입점
+├── screens/                # 네이티브 스크린 관리
+│   ├── ScreenManager.tsx   # 스크린 관리 컴포넌트
+│   ├── config.ts           # 스크린 설정
+│   └── types.ts            # 스크린 관련 타입
+├── types/                  # 브릿지 타입 정의
 ├── react-example/          # 웹 예제 코드
 │   ├── lib/bridge.ts       # 웹측 브릿지 구현
 │   └── components/         # 웹 컴포넌트 예제
@@ -74,14 +66,14 @@ expo-webview-practice/
 
 1. **웹 → 네이티브 요청**:
 
-   - 웹에서 `bridge.xxx()` 메서드 호출
+   - 웹에서 `bridge("FEATURE_NAME", { ... })` 메서드 호출
    - 메시지가 `postMessage()`를 통해 네이티브로 전송
 
 2. **네이티브 처리**:
 
-   - `WebViewBridge.tsx`의 `onMessage` 이벤트에서 메시지 수신
    - `useMessageHandler` 훅이 메시지 타입에 따라 적절한 핸들러 호출
-   - 일반 함수 호출은 `handlers`에서, 스크린(모달) 요청은 `screenHandlers`에서 처리
+   - 각 기능별 핸들러는 features/ 디렉토리에 구현
+   - 네이티브 스크린 호출이 필요하면, screens/config.ts 에 등록
 
 3. **네이티브 → 웹 응답**:
    - 처리 결과를 `sendResponse()` 또는 `sendErrorResponse()`로 웹에 전송
@@ -89,10 +81,9 @@ expo-webview-practice/
 
 ### 핵심 컴포넌트
 
-- **WebViewBridge**: 웹뷰 컴포넌트와 메시지 핸들링 로직 통합
-- **NativeScreenManager**: 모달 화면(카메라, OCR 등) 관리
-- **useMessageHandler**: 브릿지 메시지 처리 로직 구현
-- **handlers/**: 각 기능별 핸들러 구현
+- **components/webview/**: 웹뷰표시, 브릿지, 네테이브 스크린 호출 등 중앙 처리 로직
+- **features/**: 각 기능별 모듈 구현
+- **ScreenManager**: 네이티브 스크린 (카메라, OCR 등) 관리
 
 ## 브릿지 API 사용법
 
@@ -100,47 +91,56 @@ expo-webview-practice/
 
 ```javascript
 // 알림 표시
-const buttonClicked = await bridge.alert("제목", "메시지 내용", [
-  { text: "확인", actionId: "confirm" },
-  { text: "취소", actionId: "cancel" },
-]);
+const buttonClicked = await bridge("ALERT", {
+  title: "제목",
+  message: "메시지 내용",
+  buttons: [
+    { text: "확인", actionId: "confirm" },
+    { text: "취소", actionId: "cancel" },
+  ],
+});
 
 // 카메라
-const permission = await bridge.camera.requestPermission();
-const picture = await bridge.camera.takePicture({ quality: 0.8 });
+const permission = await bridge("CAMERA_REQUEST_PERMISSION", undefined);
+const picture = await bridge("CAMERA_SHOW", { quality: 0.8 });
 
 // OCR
-const idCardResult = await bridge.ocr.scanIDCard();
-const driverLicenseResult = await bridge.ocr.scanDriverLicense();
+const idCardResult = await bridge("OCR", {
+  documentType: "ID_CARD",
+  quality: 0.8,
+});
 ```
 
 ## 새로운 브릿지 기능 추가 방법
 
 1. **타입 정의**:
 
-   - `types/bridge.d.ts`에 메시지 타입 추가
-   - 필요시 `types/xxx.d.ts`에 상세 타입 정의
+   - 전역 타입 확장으로 메시지 타입 추가
+   - `types/index.d.ts` 파일에 타입 추가
 
 2. **핸들러 구현**:
 
-   - `components/webview/handlers/xxxHandler.ts` 파일 생성
-   - `createXXXHandlers()` 함수 구현
+   - `features/xxx/handlers.ts` 파일 생성
+   - `Handlers` 타입에 맞게 핸들러 객체 구현
 
-3. **핸들러 등록**:
+3. **컴포넌트 구현 (필요시)**:
 
-   - `components/webview/handlers/index.ts`에 핸들러 추가
-
-4. **웹 API 구현**:
-   - `react-example/lib/bridge.ts`에 웹측 API 구현
+   - `features/xxx/xxx.tsx`에 관련 UI 컴포넌트 구현
+   - `screens/config.ts`에 스크린으로 등록 (모달이 필요한 경우)
 
 ## 개발 가이드라인
 
+### 타입 안전성
+
+- 모든 메시지 핸들러는 타입 안전하게 구현
+- `any` 타입 사용 최소화
+- 정확한 인터페이스 정의로 타입 오류 방지
+
 ### 네이밍 컨벤션
 
-- **컴포넌트**: PascalCase (예: `WebViewBridge`)
-- **함수/변수**: camelCase (예: `handleMessage`)
-- **타입/인터페이스**: PascalCase (예: `BridgePayload`)
-- **브릿지 메시지 타입**: UPPER\*SNAKE_CASE (예: `CAMERA_SHOW`) `기능\_명령\_타입`
+- **타입/인터페이스**
+  - 브릿지 요청: PascalCase (예: `CameraPayload`)
+  - 브릿지 응답: camelCase (예: `CameraResult`)
 
 ## 알려진 제한사항
 

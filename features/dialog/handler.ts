@@ -1,8 +1,8 @@
 import { Alert } from "react-native";
 
-import type { MessageHandlers } from "../hooks/useMessageHandler";
+import type { Handlers } from "@/components/webview/useMessageHandler";
 
-const createDialogHandlers = (): Pick<MessageHandlers, "ALERT"> => ({
+const dialogHandler: Handlers = {
   ALERT: async (id, { title, message, buttons }) => {
     const result = await new Promise<{ index: number; actionId?: string }>(
       (resolve) => {
@@ -32,6 +32,6 @@ const createDialogHandlers = (): Pick<MessageHandlers, "ALERT"> => ({
       },
     };
   },
-});
+};
 
-export default createDialogHandlers;
+export default dialogHandler;

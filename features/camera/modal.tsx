@@ -31,7 +31,8 @@ import {
   useCameraPermission,
 } from "react-native-vision-camera";
 
-import BaseModal from "./BaseModal";
+import BaseModal from "@/components/BaseModal";
+import type { ScreenComponentProps } from "@/screens/types";
 
 import type { ReactNode } from "react";
 import type { PinchGestureHandlerGestureEvent } from "react-native-gesture-handler";
@@ -39,7 +40,6 @@ import type {
   CameraPosition,
   CameraRuntimeError,
   DrawableFrameProcessor,
-  PhysicalCameraDeviceType,
   Point,
   ReadonlyFrameProcessor,
   TakePhotoOptions,
@@ -57,36 +57,20 @@ const SCALE_FULL_ZOOM = 3;
 const BUTTON_SIZE = 44;
 const CONTENT_SPACING = 15;
 
-interface CameraResult {
-  uri: string;
-  width: number;
-  height: number;
-  base64?: string;
-  exif?: any;
-}
-
-interface CameraModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onCapture: (camera: CameraResult) => void;
-  showIdCardGuide?: boolean;
+interface CameraModalProps
+  extends ScreenComponentProps<CameraPayload, CameraResult> {
   children?: ReactNode;
-  cameraOptions?: VisionCameraOptions;
   frameProcessor?: ReadonlyFrameProcessor | DrawableFrameProcessor;
   cameraRef?: React.RefObject<Camera>;
 }
 
-interface VisionCameraOptions {
-  physicalDevices?: PhysicalCameraDeviceType[];
-}
-
-const VisionCameraModal: React.FC<CameraModalProps> = ({
+const CameraModal: React.FC<CameraModalProps> = ({
   visible,
+  payload,
   onClose,
-  onCapture,
+  onComplete,
   children,
   frameProcessor,
-  cameraOptions,
   cameraRef: externalCameraRef,
 }) => {
   const {
@@ -95,11 +79,11 @@ const VisionCameraModal: React.FC<CameraModalProps> = ({
       "ultra-wide-angle-camera",
       "wide-angle-camera",
     ],
-  } = cameraOptions || {};
+  } = payload || [];
   // 카메라 권한
   const { hasPermission, requestPermission } = useCameraPermission();
   const [cameraPosition, setCameraPosition] = useState<CameraPosition>("back");
-  const [flash, setFlash] = useState<"off" | "on">("off");
+  const [flash, setFlash] = useState<FlashMode>("off");
   const [isCameraInitialized, setIsCameraInitialized] = useState(false);
   const [enableHdr, setEnableHdr] = useState(false);
   const [enableNightMode, setEnableNightMode] = useState(false);
@@ -261,7 +245,7 @@ const VisionCameraModal: React.FC<CameraModalProps> = ({
         const photo = await cameraRef.current.takePhoto(options);
 
         // 사진 정보를 결과 형식으로 변환
-        onCapture({
+        onComplete({
           uri: `file://${photo.path}`,
           width: photo.width,
           height: photo.height,
@@ -445,12 +429,7 @@ const VisionCameraModal: React.FC<CameraModalProps> = ({
   };
 
   return (
-    <BaseModal
-      visible={visible}
-      onClose={onClose}
-      title="카메라"
-      hideHeader={hasPermission}
-    >
+    <BaseModal visible={visible} onClose={onClose} title="카메라">
       {!hasPermission ? renderNoPermissionContent() : renderCameraContent()}
     </BaseModal>
   );
@@ -555,4 +534,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default VisionCameraModal;
+export default CameraModal;

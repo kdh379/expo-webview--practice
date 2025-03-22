@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 
-import { WebViewBridge } from "@/components/webview/WebViewBridge";
+import WebViewBridge from "@/components/webview";
 
 import { NEXT_URL } from "../constants/env";
 
