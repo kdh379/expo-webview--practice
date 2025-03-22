@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useState } from "react";
 
-import type { DocumentScanResult } from "@/components/DocumentScannerModal";
-import DocumentScannerModal from "@/components/DocumentScannerModal";
+import OpenCVOCRModal from "@/components/OpenCVOCRModal";
 import VisionCameraModal from "@/components/VisionCameraModal";
-import VisionOCRModal from "@/components/VisionOCRModal";
 
 import CameraModal from "../CameraModal";
 import OCRModal from "../OCRModal";
@@ -54,12 +52,7 @@ interface OCRState {
   options?: OCRPayload;
 }
 
-interface VisionOCRState {
-  visible: boolean;
-  callbackId: string;
-}
-
-interface DocumentScannerState {
+interface OpenCvOCRState {
   visible: boolean;
   callbackId: string;
 }
@@ -90,18 +83,11 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
     },
   );
 
-  // VisionOCR 모달 상태 관리
-  const [visionOCRState, setVisionOCRState] = useState<VisionOCRState>({
+  // OpenCVOCR 모달 상태 관리
+  const [openCvOCRState, setOpenCvOCRState] = useState<OpenCvOCRState>({
     visible: false,
     callbackId: "",
   });
-
-  // DocumentScanner 모달 상태 관리
-  const [documentScannerState, setDocumentScannerState] =
-    useState<DocumentScannerState>({
-      visible: false,
-      callbackId: "",
-    });
 
   // VisionCamera 모달 닫기 핸들러
   const handleCloseVisionCamera = (result?: CameraResult) => {
@@ -125,29 +111,15 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
     });
   };
 
-  // DocumentScanner 모달 닫기 핸들러
-  const handleCloseDocumentScanner = (result?: DocumentScanResult) => {
-    if (documentScannerState.callbackId) {
-      if (result) {
-        sendResponse(documentScannerState.callbackId, result);
-      }
-    }
-
-    setDocumentScannerState({
-      visible: false,
-      callbackId: "",
-    });
-  };
-
   // VisionOCR 모달 닫기 핸들러
-  const handleCloseVisionOCR = (result?: IDCardOCRResult) => {
-    if (visionOCRState.callbackId) {
+  const handleCloseOpenCvOCR = (result?: IDCardOCRResult) => {
+    if (openCvOCRState.callbackId) {
       if (result) {
-        sendResponse(visionOCRState.callbackId, result);
+        sendResponse(openCvOCRState.callbackId, result);
       }
     }
 
-    setVisionOCRState({
+    setOpenCvOCRState({
       visible: false,
       callbackId: "",
     });
@@ -223,14 +195,8 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
         callbackId: id,
       });
     },
-    showVisionOCR: (id: string) => {
-      setVisionOCRState({
-        visible: true,
-        callbackId: id,
-      });
-    },
-    showDocumentScanner: (id: string) => {
-      setDocumentScannerState({
+    showOpenCvOCR: (id: string) => {
+      setOpenCvOCRState({
         visible: true,
         callbackId: id,
       });
@@ -263,16 +229,11 @@ const NativeScreenManager: React.FC<NativeScreenManagerProps> = ({
         onCapture={handleCloseVisionCamera}
       />
 
-      <VisionOCRModal
-        visible={visionOCRState.visible}
-        onClose={() => handleCloseVisionOCR()}
-        onComplete={handleCloseVisionOCR}
-      />
-
-      <DocumentScannerModal
-        visible={documentScannerState.visible}
-        onClose={() => handleCloseDocumentScanner()}
-        onCapture={handleCloseDocumentScanner}
+      {/* OpenCVOCR 모달 */}
+      <OpenCVOCRModal
+        visible={openCvOCRState.visible}
+        onClose={() => handleCloseOpenCvOCR()}
+        onComplete={handleCloseOpenCvOCR}
       />
     </NativeScreenContext.Provider>
   );

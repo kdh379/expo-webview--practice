@@ -51,14 +51,6 @@
           "modes": ["peripheral", "central"],
           "bluetoothAlwaysPermission": "블루투스 기능을 사용하기 위해 권한이 필요합니다."
         }
-      ],
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "차량을 촬영하기 위해 카메라 권한이 필요합니다.",
-          "microphonePermission": "주변 소리를 녹음하기 위해 마이크 권한이 필요합니다.",
-          "recordAudioAndroid": true
-        }
       ]
     ],
     "experiments": {

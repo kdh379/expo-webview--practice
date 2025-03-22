@@ -11,8 +11,7 @@ export interface ScreenController {
   showCamera: (id: string) => void;
   showOCR: (id: string, options?: OCRPayload) => void;
   showVisionCamera: (id: string) => void;
-  showVisionOCR: (id: string) => void;
-  showDocumentScanner: (id: string) => void;
+  showOpenCvOCR: (id: string) => void;
 }
 
 /**
@@ -25,35 +24,21 @@ export const createScreenHandlers = (
   controller: ScreenController,
 ): Partial<ScreenHandlers> => {
   return {
-    // 카메라 모달 표시
-    CAMERA_SHOW: (id: string, payload) => {
-      console.log("showCamera", id, payload);
-
-      controller.showCamera(id);
-      return true;
-    },
-
     // ID 카드 OCR 모달 표시
     OCR_SCAN_ID_CARD: (id, payload) => {
       controller.showOCR(id, payload);
       return true;
     },
 
-    // VisionCamera 모달 표시
-    VISION_CAMERA_SHOW: (id: string) => {
+    // Camera 모달 표시
+    CAMERA_SHOW: (id: string) => {
       controller.showVisionCamera(id);
       return true;
     },
 
-    // VisionOCR 모달 표시
-    VISION_OCR_SHOW: (id: string) => {
-      controller.showVisionOCR(id);
-      return true;
-    },
-
-    // DocumentScanner 모달 표시
-    DOCUMENT_SCANNER_SHOW: (id: string) => {
-      controller.showDocumentScanner(id);
+    // OpenCVOCR 모달 표시
+    OPENCV_OCR_SHOW: (id: string) => {
+      controller.showOpenCvOCR(id);
       return true;
     },
   };

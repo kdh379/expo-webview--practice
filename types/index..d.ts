@@ -101,21 +101,13 @@ type bridges = {
   };
 
   // Camera
-  CAMERA_SHOW: {
-    payload: CameraPictureOptions;
-    response: CameraResult;
-  };
-  CAMERA_HIDE: {
-    payload: undefined;
-    response: void;
-  };
   CAMERA_REQUEST_PERMISSION: {
     payload: undefined;
     response: CameraPermissionResponse;
   };
-  CAMERA_STOP_RECORDING: {
+  CAMERA_SHOW: {
     payload: undefined;
-    response: void;
+    response: CameraResult;
   };
 
   // OCR
@@ -124,22 +116,10 @@ type bridges = {
     response: OCRResponse;
   };
 
-  // VisionCamera
-  VISION_CAMERA_SHOW: {
-    payload: undefined;
-    response: CameraResult;
-  };
-
-  // VisionOCR
-  VISION_OCR_SHOW: {
+  // OpenCVOCR
+  OPENCV_OCR_SHOW: {
     payload: undefined;
     response: IDCardOCRResult;
-  };
-
-  // DocumentScanner
-  DOCUMENT_SCANNER_SHOW: {
-    payload: undefined;
-    response: DocumentScanResult;
   };
 };
 
